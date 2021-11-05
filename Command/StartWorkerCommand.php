@@ -1,4 +1,7 @@
 <?php
+
+declare(ticks = 1);
+
 /*
  * @copyright  Copyright (C) 2019 Blue Flame Digital Solutions Limited / Phil Taylor. All rights reserved.
  * @author     Phil Taylor <phil@phil-taylor.com> and others, see README.md
@@ -143,6 +146,11 @@ class StartWorkerCommand extends ContainerAwareCommand
 
         // if foreground, we redirect output
         if ($input->getOption('foreground')) {
+            foreach ([SIGTERM, SIGINT, SIGQUIT, SIGUSR1, SIGUSR2, SIGCONT] as $signal) {
+                // Forward signals to worker process
+                pcntl_signal($signal, fn () => $process->signal($signal));
+            }
+
             $process->run(function ($type, $buffer) use ($output) {
                 $output->write($buffer);
             });
